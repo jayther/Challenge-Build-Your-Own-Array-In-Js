@@ -29,9 +29,7 @@ MyArray.prototype.length = function () {
 };
 
 MyArray.prototype.push = function (value) {
-    this._growElementsTo(this.size + 1);
-    this.elements.set(this.size, value);
-    this.size += 1;
+    this.set(this.size, value);
 };
 
 MyArray.prototype.get = function (index) {
@@ -61,8 +59,8 @@ MyArray.prototype.pop = function () {
     if (this.size === 0) {
         return undefined;
     }
+    var element = this.get(this.size - 1);
     this.size -= 1;
-    var element = this.elements.get(this.size);
     // clear last item's old position
     this.elements.set(this.size, undefined);
     return element;
@@ -72,7 +70,7 @@ MyArray.prototype.concat = function (other) {
     var arr = new MyArray(this.size + other.size);
     var i;
     for (i = 0; i < this.size; i += 1) {
-        arr.push(this.elements.get(i));
+        arr.push(this.get(i));
     }
     for (i = 0; i < other.length(); i += 1) {
         arr.push(other.get(i));
@@ -83,7 +81,7 @@ MyArray.prototype.concat = function (other) {
 MyArray.prototype.indexOf = function (element) {
     var i;
     for (i = 0; i < this.size; i += 1) {
-        if (this.elements.get(i) === element) {
+        if (this.get(i) === element) {
             return i;
         }
     }
@@ -93,7 +91,7 @@ MyArray.prototype.indexOf = function (element) {
 MyArray.prototype.lastIndexOf = function (element) {
     var i;
     for (i = this.size - 1; i >= 0; i -= 1) {
-        if (this.elements.get(i) === element) {
+        if (this.get(i) === element) {
             return i;
         }
     }
@@ -107,7 +105,7 @@ MyArray.prototype.includes = function (element) {
 MyArray.prototype.find = function (fn) {
     var i, element;
     for (i = 0; i < this.size; i += 1) {
-        element = this.elements.get(i);
+        element = this.get(i);
         if (fn(element)) {
             return element;
         }
@@ -118,7 +116,7 @@ MyArray.prototype.find = function (fn) {
 MyArray.prototype.findIndex = function (fn) {
     var i;
     for (i = 0; i < this.size; i += 1) {
-        if (fn(this.elements.get(i))) {
+        if (fn(this.get(i))) {
             return i;
         }
     }
@@ -130,7 +128,7 @@ MyArray.prototype.equals = function (other) {
 
     var i;
     for (i = 0; i < this.size; i += 1) {
-        if (this.elements.get(i) !== other.get(i)) {
+        if (this.get(i) !== other.get(i)) {
             return false;
         }
     }
@@ -141,7 +139,7 @@ MyArray.prototype.equals = function (other) {
 MyArray.prototype.forEach = function (fn) {
     var i;
     for (i = 0; i < this.size; i += 1) {
-        fn(this.elements.get(i), i, this);
+        fn(this.get(i), i, this);
     }
 };
 
@@ -151,7 +149,7 @@ MyArray.prototype.join = function (separator) {
     }
     var s = '', i;
     for (i = 0; i < this.size; i += 1) {
-        var element = this.elements.get(i);
+        var element = this.get(i);
         if (i < this.size - 1) {
             s += element + separator;
         } else {
@@ -169,7 +167,7 @@ MyArray.prototype.map = function (fn) {
     var i, arr = new MyArray(this.size);
     for (i = 0; i < this.size; i += 1) {
         arr.push(
-            fn(this.elements.get(i), i, this)
+            fn(this.get(i), i, this)
         );
     }
     return arr;
@@ -178,7 +176,7 @@ MyArray.prototype.map = function (fn) {
 MyArray.prototype.filter = function (fn) {
     var i, arr = new MyArray(), element;
     for (i = 0; i < this.size; i += 1) {
-        element = this.elements.get(i);
+        element = this.get(i);
         if (fn(element, i, this)) {
             arr.push(element);
         }
@@ -189,7 +187,7 @@ MyArray.prototype.filter = function (fn) {
 MyArray.prototype.some = function (fn) {
     var i;
     for (i = 0; i < this.size; i += 1) {
-        if (fn(this.elements.get(i), i, this)) {
+        if (fn(this.get(i), i, this)) {
             return true;
         }
     }
@@ -199,7 +197,7 @@ MyArray.prototype.some = function (fn) {
 MyArray.prototype.every = function (fn) {
     var i;
     for (i = 0; i < this.size; i += 1) {
-        if (!fn(this.elements.get(i), i, this)) {
+        if (!fn(this.get(i), i, this)) {
             return false;
         }
     }
@@ -225,12 +223,12 @@ MyArray.prototype.reverse = function () {
     var i, pivot = Math.ceil(this.size / 2), temp;
     for (i = 0; i < pivot; i += 1) {
         // swap 
-        temp = this.elements.get(i);
-        this.elements.set(
+        temp = this.get(i);
+        this.set(
             i,
-            this.elements.get(this.size - 1 - i)
+            this.get(this.size - 1 - i)
         );
-        this.elements.set(
+        this.set(
             this.size - 1 - i,
             temp
         );
@@ -241,13 +239,13 @@ MyArray.prototype.reverse = function () {
 MyArray.prototype.shift = function () {
     if (this.size === 0) { return undefined; }
 
-    var element = this.elements.get(0), i;
+    var element = this.get(0), i;
 
     // shift items to the left
     for (i = 1; i < this.size; i += 1) {
-        this.elements.set(
+        this.set(
             i - 1,
-            this.elements.get(i)
+            this.get(i)
         );
     }
 
@@ -260,21 +258,19 @@ MyArray.prototype.shift = function () {
 };
 
 MyArray.prototype.unshift = function (element) {
-    this._growElementsTo(this.size + 1);
     var i;
     
     // shift items to the right
     for (i = this.size - 1; i >= 0; i -= 1) {
-        this.elements.set(
+        this.set(
             i + 1,
-            this.elements.get(i)
+            this.get(i)
         );
     }
 
     // set element to first
-    this.elements.set(0, element);
+    this.set(0, element);
 
-    this.size += 1;
     return this.size;
 };
 
@@ -289,7 +285,7 @@ MyArray.prototype.slice = function (start, end) {
 
     var i, arr = new MyArray(end - start);
     for (i = start; i < end; i += 1) {
-        arr.push(this.elements.get(i));
+        arr.push(this.get(i));
     }
 
     return arr;
@@ -308,7 +304,7 @@ MyArray.prototype.splice = function (start, deleteCount) {
     
     // store removed items to return
     for (i = start; i < start + deleteCount; i += 1) {
-        removedItems.push(this.elements.get(i));
+        removedItems.push(this.get(i));
     }
 
     // are there items to add?
@@ -321,37 +317,35 @@ MyArray.prototype.splice = function (start, deleteCount) {
     if (deltaSize < 0) {
         // items to add is smaller than delete count (and thus smaller array)
         // shift tail elements left
-        for (i = start + deleteCount; i < this.size; i += 1) {
-            this.elements.set(
+        var oldSize = this.size;
+        for (i = start + deleteCount; i < oldSize; i += 1) {
+            this.set(
                 i + deltaSize,
-                this.elements.get(i)
+                this.get(i)
             );
         }
         // clear uncopied remaining tail elements
-        for (i = this.size + deltaSize; i < this.size; i += 1) {
+        for (i = oldSize + deltaSize; i < oldSize; i += 1) {
             this.elements.set(i, undefined);
         }
 
+        // need to update size since it's smaller
         this.size += deltaSize;
     } else if (deltaSize > 0) {
         // items to add is bigger than delete count (and thus bigger array)
-        this._growElementsTo(this.size + deltaSize);
-
         // shift tail elements right to make room
         for (i = this.size - 1; i >= start + deleteCount; i -= 1) {
-            this.elements.set(
+            this.set(
                 i + deltaSize,
-                this.elements.get(i)
+                this.get(i)
             );
         }
-
-        this.size += deltaSize;
     }
 
     // put items to add from arguments
     if (sizeOfAddingItems > 0) {
         for (i = 0; i < sizeOfAddingItems; i += 1) {
-            this.elements.set(start + i, arguments[i + 2]);
+            this.set(start + i, arguments[i + 2]);
         }
     }
 
